@@ -195,11 +195,10 @@ void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
             if ((channelData[sample] < threHi && channelData[sample] > threLo) || (channelData[sample] > -threHi && channelData[sample] < -threLo)) {
                 //float noise = random.nextFloat() * 2.0f - 1.0f; // Range from -1 to 1
-                float scSample = sideChainChannelData[sample];
-
                // bandpass.IIRFilterBase::setCoefficients(juce::IIRCoefficients::makeHighPass(getSampleRate(), 800));
                // bandpass.processSingleSampleRaw(noise);
-                
+
+                float scSample = sideChainChannelData[sample];
                 float mixedSignal = (1.0f - mix) * channelData[sample] + mix *  (juce::jlimit(-1.0f, 1.0f, channelData[sample] * scSample));
                 channelData[sample] = mixedSignal;
             }

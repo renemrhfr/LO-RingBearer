@@ -71,29 +71,18 @@ AmpModAudioProcessorEditor::~AmpModAudioProcessorEditor()
 //==============================================================================
 void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    //g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-   // g.drawImageAt(backgroundImage, 0, 0);
     g.drawImage (backgroundImage, getLocalBounds ().toFloat ());
-
-
-    // Define the gradient's start and end points
-    juce::Point<float> start(0, 0);       // Top-left corner
+    juce::Point<float> start(getWidth()/2, 60);       // Top-left corner
     juce::Point<float> end(0, getHeight());  // Bottom-left corner
-
-    // Define the gradient's start and end colors
     juce::ColourGradient gradient(
-            juce::Colour::fromRGB(25,40,54).withAlpha(0.8f),  // Start color (transparent)
+            juce::Colour::fromRGB(25,40,54).withAlpha(0.6f),
             start,
-            juce::Colour::fromRGB(9,14,19).withAlpha(0.8f), // End color (semi-transparent black)
+            juce::Colour::fromRGB(9,14,19).withAlpha(0.9f),
             end,
-            false   // isRadial (set to true for a radial gradient)
+            true
     );
-
-    // Draw the gradient
     g.setGradientFill(gradient);
     g.fillRect(getLocalBounds());
-
 }
 
 void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
@@ -116,15 +105,14 @@ void AmpModAudioProcessorEditor::resized()
     int height = getHeight();
     
     // X, Y, Width, Height
-    threLo.setBounds(20, height * 0.6, 80, height * 0.2);
-    threLoLabel.setBounds(20, height * 0.8, 80, height * 0.2);
+    threLo.setBounds(20, height * 0.7, 80, height * 0.2);
+    threLoLabel.setBounds(20, height * 0.85, 80, height * 0.2);
     
-    threHi.setBounds(150, height * 0.6, 80, height * 0.2);
-    threHiLabel.setBounds(150, height * 0.8, 80, height * 0.2);
+    threHi.setBounds(150, height * 0.7, 80, height * 0.2);
+    threHiLabel.setBounds(150, height * 0.85, 80, height * 0.2);
     
-    mix.setBounds(280, height * 0.6, 100, height * 0.2);
-    mixLabel.setBounds(315, height * 0.8, 50, height * 0.2);
+    mix.setBounds(280, height * 0.7, 100, height * 0.2);
+    mixLabel.setBounds(315, height * 0.85, 50, height * 0.2);
     
-    audioProcessor.oscilloscope.setBounds(width*0.03, 10, width*0.95, height*0.5);
-    
+    audioProcessor.oscilloscope.setBounds(width*0.03, 10, width*0.95, height*0.6);
 }
