@@ -10,19 +10,24 @@
 
 #include "JuceHeader.h"
 #include "PluginProcessor.h"
+#include "BinaryData.h"
+#include "RingBearerLookAndFeel.h"
 
 //==============================================================================
 /**
 */
-class AmpModAudioProcessorEditor  : public juce::AudioProcessorEditor
+class AmpModAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Slider::Listener
 {
 public:
     AmpModAudioProcessorEditor (AmpModAudioProcessor&, juce::AudioProcessorValueTreeState& vts);
     ~AmpModAudioProcessorEditor() override;
+    void sliderValueChanged(juce::Slider* slider) override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    juce::Image backgroundImage;
+    RingBearerLookAndFeel ringBearerLookAndFeel;
 
 private:
     // This reference is provided as a quick way for your editor to

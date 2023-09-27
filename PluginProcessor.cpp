@@ -16,8 +16,9 @@ AmpModAudioProcessor::AmpModAudioProcessor()
 #if ! JucePlugin_IsMidiEffect
 #if ! JucePlugin_IsSynth
                   .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                  .withInput("Sidechain Input", juce::AudioChannelSet::stereo(), true)
 #endif
-                  .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                  .withOutput ("Output", juce::AudioChannelSet::stereo(), false)
 #endif
                   ),
 oscilloscope(),
@@ -25,12 +26,12 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
            {
     // Start, End, Interval, Skew
     std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 0.5), 0.0f),
-    std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.5), 0.0f),
+    std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.5), 1.0f),
     std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f)
            })
 #endif
 {
-           
+
 }
 
 AmpModAudioProcessor::~AmpModAudioProcessor()
@@ -140,10 +141,15 @@ bool AmpModAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) c
 
 void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+
+    oscilloscope.pushBuffer(buffer);
+
+
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto sidechainChannels  = getBusBuffer (buffer, true, 1).getNumChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    
+    juce::AudioBuffer<float> sidechainBuffer = getBusBuffer(buffer, true, 1);
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -152,7 +158,20 @@ void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-    
+
+
+    // Check if sidechainBuffer is valid
+    if (!sidechainBuffer.getNumChannels()) {
+        return; // or handle this scenario appropriately
+    }
+
+// Check for buffer size mismatch
+    if (buffer.getNumSamples() > sidechainBuffer.getNumSamples()) {
+        return; // or handle this scenario appropriately
+    }
+
+    int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
+
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
@@ -167,24 +186,27 @@ void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     threHi = parameters.getParameter("ThresholdHigh")->getValue();
     threLo = parameters.getParameter("ThresholdLow")->getValue();
     mix = parameters.getParameter("Mix")->getValue();
-    
- 
-    
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+
+    for (int channel = 0; channel < totalChannelsToProcess; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
+        auto* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
+
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
             if ((channelData[sample] < threHi && channelData[sample] > threLo) || (channelData[sample] > -threHi && channelData[sample] < -threLo)) {
-                float noise = random.nextFloat() * 2.0f - 1.0f; // Range from -1 to 1
-                bandpass.IIRFilterBase::setCoefficients(juce::IIRCoefficients::makeHighPass(getSampleRate(), 800));
-                bandpass.processSingleSampleRaw(noise);
+                //float noise = random.nextFloat() * 2.0f - 1.0f; // Range from -1 to 1
+                float scSample = sideChainChannelData[sample];
+
+               // bandpass.IIRFilterBase::setCoefficients(juce::IIRCoefficients::makeHighPass(getSampleRate(), 800));
+               // bandpass.processSingleSampleRaw(noise);
                 
-                float mixedSignal = (1.0f - mix) * channelData[sample] + mix *  (juce::jlimit(-1.0f, 1.0f, channelData[sample] * noise));
+                float mixedSignal = (1.0f - mix) * channelData[sample] + mix *  (juce::jlimit(-1.0f, 1.0f, channelData[sample] * scSample));
                 channelData[sample] = mixedSignal;
             }
         }
     }
-    oscilloscope.pushBuffer(buffer);
+    // TODO: Setup a second Oscilloscope to dislpay the modulated sample
+    //oscilloscope.pushBuffer(buffer);
 }
 
 //==============================================================================
