@@ -21,26 +21,20 @@ class AmpModAudioProcessorEditor  : public juce::AudioProcessorEditor, public ju
 public:
     AmpModAudioProcessorEditor (AmpModAudioProcessor&, juce::AudioProcessorValueTreeState& vts);
     ~AmpModAudioProcessorEditor() override;
-    void sliderValueChanged(juce::Slider* slider) override;
-
-    //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    juce::Image backgroundImage;
-    RingBearerLookAndFeel ringBearerLookAndFeel;
+    void sliderValueChanged(juce::Slider* slider) override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     AmpModAudioProcessor& audioProcessor;
-    juce::Slider threHi;
+    juce::Image backgroundImage;
+    RingBearerLookAndFeel ringBearerLookAndFeel;
     juce::Slider threLo;
-    juce::Slider mix;
-    
     juce::Label threLoLabel;
+    juce::Slider threHi;
     juce::Label threHiLabel;
+    juce::Slider mix;
     juce::Label mixLabel;
-    
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> threLoAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> threHiAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mixAttachment;
