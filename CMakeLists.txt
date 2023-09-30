@@ -64,6 +64,17 @@ juce_add_plugin(LO-RingBearer
 
 # juce_generate_juce_header(LO-RingBearer)
 
+### This copies the Build on Mac
+set(VST3_SOURCE_DIR "/Users/renemaierhofer/Dev/CLionProjects/Lo-Ringbearer/cmake-build-debug/LO-RingBearer_artefacts/Debug/VST3")
+set(VST3_DESTINATION_DIR "/Users/renemaierhofer/Library/Audio/Plug-Ins/VST3")
+
+add_custom_command(TARGET LO-RingBearer_VST3 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${VST3_SOURCE_DIR}/LO-RingBearer.vst3"
+        "${VST3_DESTINATION_DIR}/LO-RingBearer.vst3"
+        COMMENT "Copying VST3 plugin to the VST3 plugins folder"
+)
+
 # `target_sources` adds source files to a target. We pass the target that needs the sources as the
 # first argument, then a visibility parameter for the sources which should normally be PRIVATE.
 # Finally, we supply a list of source files that will be built into the target. This is a standard

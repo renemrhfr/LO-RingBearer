@@ -30,7 +30,7 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     threHi.setTextBoxStyle(juce::Slider::NoTextBox, 0,0,0);
     threHiAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "ThresholdHigh", threHi));
     addAndMakeVisible(threHi);
-    threHiLabel.setText(juce::String("Threshold Low"), juce::NotificationType::dontSendNotification);
+    threHiLabel.setText(juce::String("Threshold High"), juce::NotificationType::dontSendNotification);
     addAndMakeVisible(threHi);
     addAndMakeVisible(threHiLabel);
 
