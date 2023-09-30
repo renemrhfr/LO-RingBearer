@@ -43,8 +43,8 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     addAndMakeVisible(mixLabel);
     
     audioProcessor.oscilloscope.setColours(juce::Colours::whitesmoke, juce::Colours::black);
-    audioProcessor.oscilloscope.setBufferSize(1500);
-    audioProcessor.oscilloscope.setSamplesPerBlock(25);
+    audioProcessor.oscilloscope.setBufferSize(400);
+    audioProcessor.oscilloscope.setSamplesPerBlock(64);
     addAndMakeVisible(audioProcessor.oscilloscope);
 }
 

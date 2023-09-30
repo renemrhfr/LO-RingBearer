@@ -47,7 +47,9 @@ void Oscilloscope::paint(juce::Graphics& g) {
 void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
                                              const juce::Range<float>* levels, int numLevels, int nextSample)
 {
+    AudioVisualiserComponent::paintChannel(g, area, levels, numLevels, nextSample);
 
+    /*
     const auto centerY = area.getCentreY();
 
     // Iterate through each level to draw the waveform
@@ -65,6 +67,7 @@ void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
         g.drawVerticalLine(static_cast<int>(xPos), centerY, centerY - negLevel);
     }
 
+     */
     paintThresholds(g, area);
 }
 
