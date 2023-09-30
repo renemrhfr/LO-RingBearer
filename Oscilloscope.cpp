@@ -47,23 +47,24 @@ void Oscilloscope::paint(juce::Graphics& g) {
 void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
                                              const juce::Range<float>* levels, int numLevels, int nextSample)
 {
-    const auto halfUp = area.getHeight() / 2;
 
-    // Draw positive Values
+    const auto centerY = area.getCentreY();
+
+    // Iterate through each level to draw the waveform
     for (int i = 0; i < numLevels; ++i) {
-        auto level = halfUp + (-(levels[i].getEnd()) * area.getHeight());
+        // Scaling the levels to fit the draw area height
+        auto posLevel = levels[i].getEnd() * centerY; // Positive (upward) level
+        auto negLevel = levels[i].getStart() * centerY; // Negative (downward) level
+
+        // Calculating the X position for each level
         double position = static_cast<double>(i) / (numLevels - 1);
-        double newPositionX = position * area.getWidth();
-        g.drawVerticalLine(static_cast<int>(newPositionX), level, area.getCentre().getY());
+        double xPos = position * area.getWidth();
+
+        // Draw positive and negative lines from the center Y position
+        g.drawVerticalLine(static_cast<int>(xPos), centerY - posLevel, centerY);
+        g.drawVerticalLine(static_cast<int>(xPos), centerY, centerY - negLevel);
     }
 
-    // Draw negative Values
-     for (int i = numLevels; --i >= 0;) {
-        auto level = area.getCentre().getY() - ((levels[i].getStart()) * area.getHeight());
-         double position = static_cast<double>(i) / (numLevels - 1);
-         double newPositionX = position * area.getWidth();
-         g.drawVerticalLine(static_cast<int>(newPositionX), area.getCentre().getY(), level);
-    }
     paintThresholds(g, area);
 }
 
