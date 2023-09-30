@@ -23,8 +23,8 @@ project(LO-RingBearer VERSION 0.0.1)
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
 # or
-add_subdirectory("../../JUCE" "JUCE-bin") # -- for MAC
-#add_subdirectory("..\\..\\..\\..\\Coding\\JUCE" "JUCE-bin") # -- for Windows
+#add_subdirectory("../../JUCE" "JUCE-bin") # -- for MAC
+add_subdirectory("..\\..\\..\\..\\Coding\\JUCE" "JUCE-bin") # -- for Windows
 
 
 # If you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
@@ -65,13 +65,17 @@ juce_add_plugin(LO-RingBearer
 # juce_generate_juce_header(LO-RingBearer)
 
 ### This copies the Build on Mac
-set(VST3_SOURCE_DIR "/Users/renemaierhofer/Dev/CLionProjects/Lo-Ringbearer/cmake-build-debug/LO-RingBearer_artefacts/Debug/VST3")
-set(VST3_DESTINATION_DIR "/Users/renemaierhofer/Library/Audio/Plug-Ins/VST3")
+#set(VST3_SOURCE_DIR "/Users/renemaierhofer/Dev/CLionProjects/Lo-Ringbearer/cmake-build-debug/LO-RingBearer_artefacts/Debug/VST3")
+#set(VST3_DESTINATION_DIR "/Users/renemaierhofer/Library/Audio/Plug-Ins/VST3")
+
+### This copies the Build on Windows
+set(VST3_SOURCE_DIR "C:\\Users\\Rene\\CLionProjects\\LO-RingBearer\\cmake-build-debug\\LO-RingBearer_artefacts\\Debug\\VST3")
+set(VST3_DESTINATION_DIR "C:\\Program Files\\Common Files\\VST3")
 
 add_custom_command(TARGET LO-RingBearer_VST3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${VST3_SOURCE_DIR}/LO-RingBearer.vst3"
-        "${VST3_DESTINATION_DIR}/LO-RingBearer.vst3"
+        "${VST3_SOURCE_DIR}\\LO-RingBearer.vst3"
+        "${VST3_DESTINATION_DIR}\\LO-RingBearer.vst3"
         COMMENT "Copying VST3 plugin to the VST3 plugins folder"
 )
 
