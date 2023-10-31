@@ -35,9 +35,12 @@ private:
     juce::Label threHiLabel;
     juce::Slider mix;
     juce::Label mixLabel;
+    juce::Slider gain;
+    juce::Label gainLabel;
+
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> threLoAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> threHiAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mixAttachment;
-    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttachment;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AmpModAudioProcessorEditor)
 };

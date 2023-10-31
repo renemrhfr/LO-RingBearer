@@ -4,27 +4,49 @@ void RingBearerLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, in
                                              int height, float sliderPos,
                                              float rotaryStartAngle, float rotaryEndAngle,
                                              juce::Slider &slider) {
-    auto radius = (float) juce::jmin(width / 2, height / 2) - 2.0f;
-    auto centreX = (float) x + (float) width * 0.5f;
-    auto centreY = (float) y + (float) height * 0.5f;
+
+    auto radius = juce::jmin (width / 2, height / 2) - 4.0f;
+    auto centreX = x + width * 0.5f;
+    auto centreY = y + height * 0.5f;
     auto rx = centreX - radius;
     auto ry = centreY - radius;
     auto rw = radius * 2.0f;
     auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
 
-    if (slider.isEnabled())
-        g.setColour(juce::Colour::fromRGB(41, 69, 82).withAlpha(isMouseOver ? 1.0f : 0.4f));
-    else
-        g.setColour(juce::Colours::whitesmoke);
+    juce::ColourGradient gradient(juce::Colours::lightgrey, centreX, ry,
+                                  juce::Colours::darkgrey, centreX, ry + rw,
+                                  false);
+    g.setGradientFill(gradient);
+    g.fillEllipse (rx, ry, rw, rw);
 
-    juce::Path filledArc;
-    filledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
-    g.fillPath(filledArc);
+    // Outline
+    juce::ColourGradient gradient2(juce::Colour::fromRGB(221,201,168), centreX, ry,
+                                   juce::Colour::fromRGB(21,32,46), centreX, ry + rw,
+                                   true);
+    g.setGradientFill(gradient2);
+    juce::Path outlinePath;
+    float outlineWidth = 2.0f;
+    outlinePath.addEllipse(rx - outlineWidth, ry - outlineWidth, rw + 2 * outlineWidth, rw + 2 * outlineWidth);
+    outlinePath.addEllipse(rx, ry, rw, rw);
+    g.fillPath(outlinePath);
+    g.setColour((juce::Colour::fromRGB(90, 107, 125)));
+    juce::Path greyArc;
+    greyArc.addCentredArc (centreX, centreY, radius, radius, 0, rotaryStartAngle, rotaryEndAngle, true);
+    g.strokePath (greyArc, juce::PathStrokeType (2.0f));
 
-    auto lineThickness = juce::jmin(15.0f, (float) juce::jmin(width, height) * 0.45f) * 0.1f;
-    juce::Path outlineArc;
-    outlineArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
-    g.strokePath(outlineArc, juce::PathStrokeType(lineThickness));
 
+    // Value Indicator
+    g.setColour (juce::Colour::fromRGB(196,81,57));
+    juce::Path orangeArc;
+    orangeArc.addCentredArc (centreX, centreY, radius, radius, 0, rotaryStartAngle, angle, true);
+    g.strokePath (orangeArc, juce::PathStrokeType (2.0f));
+
+    // Value Pointer-Line
+    g.setColour (juce::Colours::white);
+    auto pointerLength = radius * 0.2f;
+    auto pointerWidth = radius * 0.1f;
+    juce::Path p;
+    p.addRectangle (-pointerWidth * 0.5f, -radius, pointerWidth, pointerLength);
+    p.applyTransform (juce::AffineTransform::rotation (angle).translated (centreX, centreY));
+    g.fillPath (p);
 }

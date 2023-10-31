@@ -13,7 +13,7 @@
 AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
 : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    setSize(400, 200);
+    setSize(500, 250);
     backgroundImage = juce::ImageCache::getFromMemory(BinaryData::Background_jpeg, BinaryData::Background_jpegSize);
 
     threLo.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -33,15 +33,24 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     addAndMakeVisible(threHi);
     addAndMakeVisible(threHiLabel);
     threHi.addListener(this);
-    
+
     mix.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     mix.setLookAndFeel(&ringBearerLookAndFeel);
     mix.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
     mixAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Mix", mix));
+
     mixLabel.setText(juce::String("Mix"), juce::NotificationType::dontSendNotification);
     addAndMakeVisible(mix);
     addAndMakeVisible(mixLabel);
-    
+
+    gain.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    gain.setLookAndFeel(&ringBearerLookAndFeel);
+    gain.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
+    gainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Gain", gain));
+    gainLabel.setText(juce::String("Volume"), juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(gain);
+    addAndMakeVisible(gainLabel);
+
     audioProcessor.oscilloscope.setColours(juce::Colours::whitesmoke, juce::Colours::black);
     audioProcessor.oscilloscope.setBufferSize(400);
     audioProcessor.oscilloscope.setSamplesPerBlock(64);
@@ -57,18 +66,32 @@ AmpModAudioProcessorEditor::~AmpModAudioProcessorEditor()
 //==============================================================================
 void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 {
+
+
+
+
+
     g.drawImage (backgroundImage, getLocalBounds ().toFloat ());
     juce::Point<float> start(static_cast<float>(getWidth() / 2), 60);       // Top-left corner
     juce::Point<float> end(0, static_cast<float>(getHeight()));  // Bottom-left corner
     juce::ColourGradient gradient(
-            juce::Colour::fromRGB(25,40,54).withAlpha(0.6f),
+            juce::Colour::fromRGB(48,58,72).withAlpha(1.0f),
             start,
-            juce::Colour::fromRGB(9,14,19).withAlpha(0.9f),
+            juce::Colour::fromRGB(4,21,28).withAlpha(1.0f),
             end,
             true
     );
     g.setGradientFill(gradient);
     g.fillRect(getLocalBounds());
+
+    g.setColour(juce::Colour::fromRGB(84, 101, 109));
+    g.drawRoundedRectangle(static_cast<float>(getX() + 10), static_cast<float>(getY() + 10), getWidth()*0.96, getHeight()*0.93, 2.0f, 1.5f);
+
+    g.setColour(juce::Colour::fromRGB(56,75,91));
+    g.drawLine(355, static_cast<float>(getHeight() * 0.70), 355, static_cast<float>(getHeight() * 0.87), 1);
+
+    g.drawHorizontalLine(getHeight() * 0.67, 20, getWidth() * 0.95f);
+
 }
 
 void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
@@ -93,17 +116,19 @@ void AmpModAudioProcessorEditor::resized()
 {
     int width = getWidth();
     int height = getHeight();
-    
+
     // X, Y, Width, Height
-    threLo.setBounds(20, static_cast<int>(height * 0.7), 80, static_cast<int>(height * 0.2));
-    threLoLabel.setBounds(20, static_cast<int>(height * 0.85), 80, static_cast<int>(height * 0.2));
-    
-    threHi.setBounds(150, static_cast<int>(height * 0.7), 80, static_cast<int>(height * 0.2));
-    threHiLabel.setBounds(150, static_cast<int>(height * 0.85), 80, static_cast<int>(height * 0.2));
-    
-    mix.setBounds(280, static_cast<int>(height * 0.7), 100, static_cast<int>(height * 0.2));
-    mixLabel.setBounds(315, static_cast<int>(height * 0.85), 50, static_cast<int>(height * 0.2));
-    
-    audioProcessor.oscilloscope.setBounds(static_cast<int>(width * 0.03), 10, static_cast<int>(width * 0.95),
-                                          static_cast<int>(height * 0.6));
+    threLo.setBounds(50, static_cast<int>(height * 0.7), 40, 40 );
+    threLoLabel.setBounds(30, static_cast<int>(height * 0.8), 80, 60);
+
+    threHi.setBounds(160, static_cast<int>(height * 0.7), 40, 40);
+    threHiLabel.setBounds(140, static_cast<int>(height * 0.8), 80, 60);
+
+    mix.setBounds(270, static_cast<int>(height * 0.7), 40, 40);
+    mixLabel.setBounds(275, static_cast<int>(height * 0.8), 60, 60);
+
+    gain.setBounds(410, static_cast<int>(height * 0.7), 40, 40);
+    gainLabel.setBounds(402, static_cast<int>(height * 0.8), 60, 60);
+    audioProcessor.oscilloscope.setBounds(static_cast<int>(width * 0.05), 20, static_cast<int>(width * 0.90),
+                                          static_cast<int>(height * 0.55));
 }

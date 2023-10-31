@@ -29,6 +29,7 @@ public:
     float threLo;
     float threHi;
     float mix;
+    float gain;
     
     Oscilloscope oscilloscope;
     

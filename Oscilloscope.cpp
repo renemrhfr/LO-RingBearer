@@ -47,7 +47,10 @@ void Oscilloscope::paint(juce::Graphics& g) {
 void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
                                              const juce::Range<float>* levels, int numLevels, int nextSample)
 {
+    g.setColour (juce::Colour::fromRGB(71,231,221));
     AudioVisualiserComponent::paintChannel(g, area, levels, numLevels, nextSample);
+
+
 
     /*
     const auto centerY = area.getCentreY();
@@ -69,6 +72,9 @@ void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
 
      */
     paintThresholds(g, area);
+
+   // g.drawFittedText("*RINGMOD", g.getClipBounds().withTrimmedTop(5).withTrimmedLeft(2), juce::Justification::topLeft, 1, 0.0f);
+
 }
 
 void Oscilloscope::paintThresholds(juce::Graphics& g, juce::Rectangle<float> area) const {
@@ -85,7 +91,6 @@ void Oscilloscope::paintThresholds(juce::Graphics& g, juce::Rectangle<float> are
     g.drawHorizontalLine(static_cast<int>(halfUp + (halfUp * threLo)), 0, area.getWidth());
 
     g.setColour(juce::Colour::fromRGB(32,61,74).withAlpha(0.6f));
-
 
     juce::Rectangle<float> topArea;
     topArea.setBounds(area.getX(), area.getY(),area.getWidth(), area.getHeight());

@@ -26,7 +26,8 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
     // Start, End, Interval, Skew
     std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
     std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f)
+    std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
+    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", 0.0f, 1.0f, 0.5f),
            })
 #endif
 {
@@ -155,6 +156,7 @@ void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
     threHi = parameters.getParameter("ThresholdHigh")->getValue();
     threLo = parameters.getParameter("ThresholdLow")->getValue();
     mix = parameters.getParameter("Mix")->getValue();
+    gain = parameters.getParameter("Gain")->getValue();
 
     for (int channel = 0; channel < totalChannelsToProcess; ++channel)
     {
@@ -169,6 +171,7 @@ void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
             }
         }
     }
+    buffer.applyGain (gain);
 }
 
 //==============================================================================
