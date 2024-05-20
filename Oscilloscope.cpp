@@ -16,7 +16,7 @@ Oscilloscope::Oscilloscope() : juce::AudioVisualiserComponent(1){
 }
 
 
-void Oscilloscope::pushBufferSnapshot(const juce::AudioBuffer<float> bufferToPush) {
+void Oscilloscope::pushBufferSnapshot(const juce::AudioBuffer<float>& bufferToPush) {
     AudioVisualiserComponent::pushBuffer(bufferToPush);
 }
 
@@ -49,32 +49,7 @@ void Oscilloscope::paintChannel (juce::Graphics& g, juce::Rectangle<float> area,
 {
     g.setColour (juce::Colour::fromRGB(71,231,221));
     AudioVisualiserComponent::paintChannel(g, area, levels, numLevels, nextSample);
-
-
-
-    /*
-    const auto centerY = area.getCentreY();
-
-    // Iterate through each level to draw the waveform
-    for (int i = 0; i < numLevels; ++i) {
-        // Scaling the levels to fit the draw area height
-        auto posLevel = levels[i].getEnd() * centerY; // Positive (upward) level
-        auto negLevel = levels[i].getStart() * centerY; // Negative (downward) level
-
-        // Calculating the X position for each level
-        double position = static_cast<double>(i) / (numLevels - 1);
-        double xPos = position * area.getWidth();
-
-        // Draw positive and negative lines from the center Y position
-        g.drawVerticalLine(static_cast<int>(xPos), centerY - posLevel, centerY);
-        g.drawVerticalLine(static_cast<int>(xPos), centerY, centerY - negLevel);
-    }
-
-     */
     paintThresholds(g, area);
-
-   // g.drawFittedText("*RINGMOD", g.getClipBounds().withTrimmedTop(5).withTrimmedLeft(2), juce::Justification::topLeft, 1, 0.0f);
-
 }
 
 void Oscilloscope::paintThresholds(juce::Graphics& g, juce::Rectangle<float> area) const {

@@ -101,14 +101,14 @@ void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChan
         if (threHi.getValue() < threLo.getValue())
             threHi.setValue(threLo.getValue(), juce::NotificationType::dontSendNotification);
         else
-        audioProcessor.oscilloscope.threHi = static_cast<float>(threHi.getValue());
+            audioProcessor.oscilloscope.threHi = static_cast<float>(threHi.getValue());
     }
     else if (sliderThatChanged == &threLo)
     {
         if (threLo.getValue() > threHi.getValue())
             threLo.setValue(threHi.getValue(), juce::NotificationType::dontSendNotification);
         else
-        audioProcessor.oscilloscope.threLo = static_cast<float>(threLo.getValue());
+            audioProcessor.oscilloscope.threLo = static_cast<float>(threLo.getValue());
     }
 }
 

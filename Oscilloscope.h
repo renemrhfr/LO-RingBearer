@@ -26,6 +26,6 @@ public:
     void paintChannel (juce::Graphics&, juce::Rectangle<float> bounds,
                        const juce::Range<float>* levels, int numLevels, int nextSample) override;
     // Copy instead of Reference to have a "Snapshot" of the Dry Buffer
-    void pushBufferSnapshot (const juce::AudioBuffer<float> bufferToPush);
+    void pushBufferSnapshot (const juce::AudioBuffer<float>& bufferToPush);
     
 };
