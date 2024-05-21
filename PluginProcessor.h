@@ -44,6 +44,8 @@ public:
    #endif
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    bool isInThreshold(float sample) const;
+    float mixSamples(float originalSample, float processedSample) const;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;

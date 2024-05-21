@@ -27,7 +27,7 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
     std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
     std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
     std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", 0.0f, 1.0f, 0.5f),
+    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", 0.0f, 1.0f, 1.0f),
            })
 #endif
 {
@@ -127,52 +127,57 @@ bool AmpModAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) c
 }
 #endif
 
-void AmpModAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void AmpModAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // Oscilloscope should display a Snapshot of the Buffer before the Effect was applied
-    oscilloscope.pushBufferSnapshot(buffer);
-
-    juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+    // Clear any output channels that exceed the input channels
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
+        buffer.clear(i, 0, buffer.getNumSamples());
+    }
+
+    // Display a snapshot of the buffer before applying the effect
+    oscilloscope.pushBufferSnapshot(buffer);
     juce::AudioBuffer<float> sidechainBuffer = getBusBuffer(buffer, true, 1);
-
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    // If SidechainBuffer is not Valid, don't do any processing
-    if (!sidechainBuffer.getNumChannels()) {
+    // Validate Sidechain buffer. If it's empty, or we don't have enought samples yet: do nothing.
+    if (!sidechainBuffer.getNumChannels() || buffer.getNumSamples() > sidechainBuffer.getNumSamples())
         return;
-    }
-
-    // If we don't have enough Samples from SidechainBuffer yet, don't do any processing
-    if (buffer.getNumSamples() > sidechainBuffer.getNumSamples()) {
-        return;
-    }
-
-    // If we have a Mono Sidechain-Signal, we can only process one channel
+    // Determine number of channels to process
     int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
-
+    // Retrieve parameter values
     threHi = parameters.getParameter("ThresholdHigh")->getValue();
     threLo = parameters.getParameter("ThresholdLow")->getValue();
     mix = parameters.getParameter("Mix")->getValue();
     gain = parameters.getParameter("Gain")->getValue();
-
-    for (int channel = 0; channel < totalChannelsToProcess; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        auto const* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
-
+    // Process the buffer
+    for (int channel = 0; channel < totalChannelsToProcess; ++channel) {
+        auto* channelData = buffer.getWritePointer(channel);
+        const auto* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
-            if ((channelData[sample] < threHi && channelData[sample] > threLo) || (channelData[sample] > -threHi && channelData[sample] < -threLo)) {
+            float inputSample = channelData[sample];
+            if (isInThreshold(inputSample)) {
+                // TODO: Slope / Smoothing. Damit, die Obertöne nicht bei z.B. sauberer Snare unerwünscht entstehen.
                 float scSample = sideChainChannelData[sample];
-                float mixedSignal = (1.0f - mix) * channelData[sample] + mix *  (juce::jlimit(-1.0f, 1.0f, channelData[sample] * scSample));
+                float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
+                float mixedSignal = mixSamples(inputSample, ringModulatedSignal);
                 channelData[sample] = mixedSignal;
             }
         }
     }
-    buffer.applyGain (gain);
+    // TODO: Fix Gain Range. 0.5 is effectively reducing the volume, once a sidechain signal comes in!
+    buffer.applyGain(gain);
 }
+
+bool AmpModAudioProcessor::isInThreshold(float sample) const
+{
+    return (sample < threHi && sample > threLo) || (sample > -threHi && sample < -threLo);
+}
+
+float AmpModAudioProcessor::mixSamples(float originalSample, float processedSample) const
+{
+    return (1.0f - mix) * originalSample + mix * processedSample;
+}
+
 
 //==============================================================================
 bool AmpModAudioProcessor::hasEditor() const
