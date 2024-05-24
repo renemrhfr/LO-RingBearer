@@ -14,22 +14,22 @@
 //==============================================================================
 /**
 */
-class AmpModAudioProcessor  : public juce::AudioProcessor
+class RingBearerAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
 {
 public:
     //==============================================================================
-    AmpModAudioProcessor();
-    ~AmpModAudioProcessor() override;
+    RingBearerAudioProcessor();
+    ~RingBearerAudioProcessor() override;
     
     juce::Random random;
     
-    float threLo;
-    float threHi;
-    float mix;
-    float gain;
+    float threLo{};
+    float threHi{};
+    float mix{};
+    float gain{};
 
     Oscilloscope oscilloscope;
     
@@ -54,8 +54,7 @@ public:
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     bool isInThreshold(float sample) const;
     void refreshSmoothing();
-    void refreshMix();
-    float mixSamples(float originalSample, float processedSample, int channel) const;
+    float mixSamples(float originalSample, float processedSample, unsigned long channel) const;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -82,5 +81,5 @@ public:
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AmpModAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingBearerAudioProcessor)
 };

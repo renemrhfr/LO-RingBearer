@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
+RingBearerAudioProcessorEditor::RingBearerAudioProcessorEditor (RingBearerAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
 : AudioProcessorEditor (&p), audioProcessor (p)
 {
     setSize(500, 250);
@@ -79,13 +79,13 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     addAndMakeVisible(audioProcessor.oscilloscope);
 }
 
-AmpModAudioProcessorEditor::~AmpModAudioProcessorEditor()
+RingBearerAudioProcessorEditor::~RingBearerAudioProcessorEditor()
 {
 
 }
 
 //==============================================================================
-void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
+void RingBearerAudioProcessorEditor::paint (juce::Graphics& g)
 {
     g.drawImage (backgroundImage, getLocalBounds ().toFloat ());
     juce::Point<float> start(static_cast<float>(getWidth() / 2), 60);       // Top-left corner
@@ -110,7 +110,7 @@ void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 
 }
 
-void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
+void RingBearerAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
 {
     audioProcessor.refreshSmoothing();
     if (sliderThatChanged == &threHi)
@@ -129,7 +129,7 @@ void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChan
     }
 }
 
-void AmpModAudioProcessorEditor::resized()
+void RingBearerAudioProcessorEditor::resized()
 {
     int width = getWidth();
     int height = getHeight();

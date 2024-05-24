@@ -16,17 +16,17 @@
 //==============================================================================
 /**
 */
-class AmpModAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Slider::Listener
+class RingBearerAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Slider::Listener
 {
 public:
-    AmpModAudioProcessorEditor (AmpModAudioProcessor&, juce::AudioProcessorValueTreeState& vts);
-    ~AmpModAudioProcessorEditor() override;
+    RingBearerAudioProcessorEditor (RingBearerAudioProcessor&, juce::AudioProcessorValueTreeState& vts);
+    ~RingBearerAudioProcessorEditor() override;
     void paint (juce::Graphics&) override;
     void resized() override;
     void sliderValueChanged(juce::Slider* slider) override;
 
 private:
-    AmpModAudioProcessor& audioProcessor;
+    RingBearerAudioProcessor& audioProcessor;
     juce::Image backgroundImage;
     RingBearerLookAndFeel ringBearerLookAndFeel;
     juce::Slider threLo;
@@ -45,5 +45,5 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mixAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> smoothingAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttachment;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AmpModAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingBearerAudioProcessorEditor)
 };

@@ -1,16 +1,8 @@
-/*
- ==============================================================================
- 
- This file contains the basic framework code for a JUCE plugin processor.
- 
- ==============================================================================
- */
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
 //==============================================================================
-AmpModAudioProcessor::AmpModAudioProcessor()
+RingBearerAudioProcessor::RingBearerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
 : AudioProcessor (BusesProperties()
 #if ! JucePlugin_IsMidiEffect
@@ -38,15 +30,14 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
     states[1] = right_channel_state;
 }
 
-AmpModAudioProcessor::~AmpModAudioProcessor() = default;
+RingBearerAudioProcessor::~RingBearerAudioProcessor() = default;
 
-//==============================================================================
-const juce::String AmpModAudioProcessor::getName() const
+const juce::String RingBearerAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool AmpModAudioProcessor::acceptsMidi() const
+bool RingBearerAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
     return true;
@@ -55,7 +46,7 @@ bool AmpModAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool AmpModAudioProcessor::producesMidi() const
+bool RingBearerAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
     return true;
@@ -64,7 +55,7 @@ bool AmpModAudioProcessor::producesMidi() const
 #endif
 }
 
-bool AmpModAudioProcessor::isMidiEffect() const
+bool RingBearerAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
     return true;
@@ -73,45 +64,44 @@ bool AmpModAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double AmpModAudioProcessor::getTailLengthSeconds() const
+double RingBearerAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int AmpModAudioProcessor::getNumPrograms()
+int RingBearerAudioProcessor::getNumPrograms()
 {
     return 1;
 }
 
-int AmpModAudioProcessor::getCurrentProgram()
+int RingBearerAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void AmpModAudioProcessor::setCurrentProgram (int index)
+void RingBearerAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String AmpModAudioProcessor::getProgramName (int index)
+const juce::String RingBearerAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void AmpModAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void RingBearerAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
-//==============================================================================
-void AmpModAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void RingBearerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
 }
 
-void AmpModAudioProcessor::releaseResources()
+void RingBearerAudioProcessor::releaseResources()
 {
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool AmpModAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool RingBearerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -131,15 +121,13 @@ bool AmpModAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) c
 }
 #endif
 
-void AmpModAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    // Clear any output channels that exceed the input channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-    // Retrieve parameter values
     threHi = parameters.getParameter("ThresholdHigh")->getValue();
     threLo = parameters.getParameter("ThresholdLow")->getValue();
     mix = parameters.getParameter("Mix")->getValue();
@@ -153,66 +141,67 @@ void AmpModAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         return;
     }
     int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
+    if (totalChannelsToProcess > 2)
+        return;
     for (int channel = 0; channel < totalChannelsToProcess; ++channel) {
         auto* channelData = buffer.getWritePointer(channel);
         const auto* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
+            auto channel_id = static_cast<unsigned long>(channel);
             float inputSample = channelData[sample];
             if (isInThreshold(inputSample)) {
-                if (!states[channel].previouslyAboveThresh) {
-                    states[channel].previouslyAboveThresh = true;
-                    states[channel].smoothedThreshold.setTargetValue(mix);
+                if (!states[channel_id].previouslyAboveThresh) {
+                    states[channel_id].previouslyAboveThresh = true;
+                    states[channel_id].smoothedThreshold.setTargetValue(mix);
                 }
             } else {
-                if (states[channel].previouslyAboveThresh) {
-                    states[channel].previouslyAboveThresh = false;
-                    states[channel].smoothedThreshold.setTargetValue(0.0f);
+                if (states[channel_id].previouslyAboveThresh) {
+                    states[channel_id].previouslyAboveThresh = false;
+                    states[channel_id].smoothedThreshold.setTargetValue(0.0f);
                 } else {
-                    if (states[channel].smoothedMix == 0.0f)
+                    if (states[channel_id].smoothedMix == 0.0f)
                         continue;
                 }
             }
-            states[channel].smoothedMix = states[channel].smoothedThreshold.getNextValue();
+            states[channel_id].smoothedMix = states[channel_id].smoothedThreshold.getNextValue();
             float scSample = sideChainChannelData[sample];
             float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
-            float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel);
+            float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel_id);
             channelData[sample] = mixedSignal;
         }
     }
     buffer.applyGain(juce::Decibels::decibelsToGain(gain));
 }
 
-bool AmpModAudioProcessor::isInThreshold(float sample) const
+bool RingBearerAudioProcessor::isInThreshold(float sample) const
 {
     return (sample < threHi && sample > threLo) || (sample > -threHi && sample < -threLo);
 }
 
-float AmpModAudioProcessor::mixSamples(float originalSample, float processedSample, int channel) const
+float RingBearerAudioProcessor::mixSamples(float originalSample, float processedSample, unsigned long channel) const
 {
     return (1.0f - states[channel].smoothedMix) * originalSample + states[channel].smoothedMix * processedSample;
 }
 
 
-//==============================================================================
-bool AmpModAudioProcessor::hasEditor() const
+bool RingBearerAudioProcessor::hasEditor() const
 {
     return true;
 }
 
-juce::AudioProcessorEditor* AmpModAudioProcessor::createEditor()
+juce::AudioProcessorEditor* RingBearerAudioProcessor::createEditor()
 {
-    return new AmpModAudioProcessorEditor (*this, parameters  );
+    return new RingBearerAudioProcessorEditor (*this, parameters  );
 }
 
-//==============================================================================
-void AmpModAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void RingBearerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto state = parameters.copyState();
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
     copyXmlToBinary (*xml, destData);
 }
 
-void AmpModAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void RingBearerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
     if (xmlState != nullptr && xmlState->hasTagName (parameters.state.getType()))
@@ -223,10 +212,10 @@ void AmpModAudioProcessor::setStateInformation (const void* data, int sizeInByte
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new AmpModAudioProcessor();
+    return new RingBearerAudioProcessor();
 }
 
-void AmpModAudioProcessor::refreshSmoothing() {
+void RingBearerAudioProcessor::refreshSmoothing() {
     states[0].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
     states[1].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
     states[0].previouslyAboveThresh = !states[0].previouslyAboveThresh;

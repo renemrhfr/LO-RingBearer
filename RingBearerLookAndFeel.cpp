@@ -29,7 +29,7 @@ void RingBearerLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, in
     outlinePath.addEllipse(rx - outlineWidth, ry - outlineWidth, rw + 2 * outlineWidth, rw + 2 * outlineWidth);
     outlinePath.addEllipse(rx, ry, rw, rw);
     g.fillPath(outlinePath);
-    g.setColour((juce::Colour::fromRGB(90, 107, 125)));
+    g.setColour(juce::Colour::fromRGB(90, 107, 125));
     juce::Path greyArc;
     greyArc.addCentredArc (centreX, centreY, radius, radius, 0, rotaryStartAngle, rotaryEndAngle, true);
     g.strokePath (greyArc, juce::PathStrokeType (2.0f));
