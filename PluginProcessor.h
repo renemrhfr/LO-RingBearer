@@ -29,10 +29,7 @@ public:
     float threLo;
     float threHi;
     float mix;
-    float smoothedMix;
-    bool previouslyAboveThresh;
     float gain;
-    juce::SmoothedValue<float> smoothedThreshold;
 
     Oscilloscope oscilloscope;
     
@@ -57,7 +54,8 @@ public:
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     bool isInThreshold(float sample) const;
     void refreshSmoothing();
-    float mixSamples(float originalSample, float processedSample) const;
+    void refreshMix();
+    float mixSamples(float originalSample, float processedSample, int channel) const;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;

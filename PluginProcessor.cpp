@@ -159,23 +159,23 @@ void AmpModAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
             float inputSample = channelData[sample];
             if (isInThreshold(inputSample)) {
-                if (!previouslyAboveThresh) {
-                    previouslyAboveThresh = true;
-                    smoothedThreshold.setTargetValue(mix);
+                if (!states[channel].previouslyAboveThresh) {
+                    states[channel].previouslyAboveThresh = true;
+                    states[channel].smoothedThreshold.setTargetValue(mix);
                 }
             } else {
-                if (previouslyAboveThresh) {
-                    previouslyAboveThresh = false;
-                    smoothedThreshold.setTargetValue(0.0f);
+                if (states[channel].previouslyAboveThresh) {
+                    states[channel].previouslyAboveThresh = false;
+                    states[channel].smoothedThreshold.setTargetValue(0.0f);
                 } else {
-                    if (smoothedMix == 0.0f)
+                    if (states[channel].smoothedMix == 0.0f)
                         continue;
                 }
             }
-            smoothedMix = smoothedThreshold.getNextValue();
+            states[channel].smoothedMix = states[channel].smoothedThreshold.getNextValue();
             float scSample = sideChainChannelData[sample];
             float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
-            float mixedSignal = mixSamples(inputSample, ringModulatedSignal);
+            float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel);
             channelData[sample] = mixedSignal;
         }
     }
@@ -187,9 +187,9 @@ bool AmpModAudioProcessor::isInThreshold(float sample) const
     return (sample < threHi && sample > threLo) || (sample > -threHi && sample < -threLo);
 }
 
-float AmpModAudioProcessor::mixSamples(float originalSample, float processedSample) const
+float AmpModAudioProcessor::mixSamples(float originalSample, float processedSample, int channel) const
 {
-    return (1.0f - smoothedMix) * originalSample + smoothedMix * processedSample;
+    return (1.0f - states[channel].smoothedMix) * originalSample + states[channel].smoothedMix * processedSample;
 }
 
 
@@ -227,5 +227,8 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 void AmpModAudioProcessor::refreshSmoothing() {
-    smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
+    states[0].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
+    states[1].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
+    states[0].previouslyAboveThresh = !states[0].previouslyAboveThresh;
+    states[1].previouslyAboveThresh = !states[1].previouslyAboveThresh;
 }

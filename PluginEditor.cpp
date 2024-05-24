@@ -37,6 +37,7 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     mix.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     mix.setLookAndFeel(&ringBearerLookAndFeel);
     mix.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
+    mix.addListener(this);
     mixAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Mix", mix));
 
     mixLabel.setText(juce::String("Mix"), juce::NotificationType::dontSendNotification);
@@ -86,11 +87,6 @@ AmpModAudioProcessorEditor::~AmpModAudioProcessorEditor()
 //==============================================================================
 void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 {
-
-
-
-
-
     g.drawImage (backgroundImage, getLocalBounds ().toFloat ());
     juce::Point<float> start(static_cast<float>(getWidth() / 2), 60);       // Top-left corner
     juce::Point<float> end(0, static_cast<float>(getHeight()));  // Bottom-left corner
@@ -116,8 +112,7 @@ void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 
 void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
 {
-    if (sliderThatChanged == &smoothing)
-        audioProcessor.refreshSmoothing();
+    audioProcessor.refreshSmoothing();
     if (sliderThatChanged == &threHi)
     {
         if (threHi.getValue() < threLo.getValue())
