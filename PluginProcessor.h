@@ -29,11 +29,22 @@ public:
     float threLo;
     float threHi;
     float mix;
+    float smoothedMix;
+    bool previouslyAboveThresh;
     float gain;
-    
+    juce::SmoothedValue<float> smoothedThreshold;
+
     Oscilloscope oscilloscope;
     
-    juce::AudioProcessorValueTreeState parameters;
+    juce::AudioProcessorValueTreeState parameters; //
+
+    struct state {
+        float smoothedMix;
+        bool previouslyAboveThresh;
+        juce::SmoothedValue<float> smoothedThreshold;
+    };
+
+    std::array<state, 1> states;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -45,6 +56,7 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     bool isInThreshold(float sample) const;
+    void refreshSmoothing();
     float mixSamples(float originalSample, float processedSample) const;
 
     //==============================================================================

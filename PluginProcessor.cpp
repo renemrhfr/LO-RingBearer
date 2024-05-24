@@ -23,15 +23,19 @@ AmpModAudioProcessor::AmpModAudioProcessor()
                   ),
 parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
            {
-    // Start, End, Interval, Skew
     std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
     std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
     std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", 0.0f, 1.0f, 1.0f),
+    std::make_unique<juce::AudioParameterFloat>("Smoothing", "Smoothing", juce::NormalisableRange<float>(0.0f, 10.0f), 0.0f),
+    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", juce::NormalisableRange<float>(-5.0f, 5.0f), 0.0f)
            })
 #endif
 {
-
+    refreshSmoothing();
+    state left_channel_state;
+    state right_channel_state;
+    states[0] = left_channel_state;
+    states[1] = right_channel_state;
 }
 
 AmpModAudioProcessor::~AmpModAudioProcessor() = default;
@@ -135,37 +139,47 @@ void AmpModAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-
-    // Display a snapshot of the buffer before applying the effect
-    oscilloscope.pushBufferSnapshot(buffer);
-    juce::AudioBuffer<float> sidechainBuffer = getBusBuffer(buffer, true, 1);
-    // Validate Sidechain buffer. If it's empty, or we don't have enought samples yet: do nothing.
-    if (!sidechainBuffer.getNumChannels() || buffer.getNumSamples() > sidechainBuffer.getNumSamples())
-        return;
-    // Determine number of channels to process
-    int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
     // Retrieve parameter values
     threHi = parameters.getParameter("ThresholdHigh")->getValue();
     threLo = parameters.getParameter("ThresholdLow")->getValue();
     mix = parameters.getParameter("Mix")->getValue();
-    gain = parameters.getParameter("Gain")->getValue();
-    // Process the buffer
+    gain = parameters.getRawParameterValue("Gain")->load();
+    // Display a snapshot of the buffer before applying the effect
+    oscilloscope.pushBufferSnapshot(buffer);
+    juce::AudioBuffer<float> sidechainBuffer = getBusBuffer(buffer, true, 1);
+    // Validate Sidechain buffer. If it's empty, or we don't have enough samples yet: do nothing.
+    if (!sidechainBuffer.getNumChannels() || buffer.getNumSamples() > sidechainBuffer.getNumSamples()) {
+        buffer.applyGain(juce::Decibels::decibelsToGain(gain));
+        return;
+    }
+    int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
     for (int channel = 0; channel < totalChannelsToProcess; ++channel) {
         auto* channelData = buffer.getWritePointer(channel);
         const auto* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
             float inputSample = channelData[sample];
             if (isInThreshold(inputSample)) {
-                // TODO: Slope / Smoothing. Damit, die Obertöne nicht bei z.B. sauberer Snare unerwünscht entstehen.
-                float scSample = sideChainChannelData[sample];
-                float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
-                float mixedSignal = mixSamples(inputSample, ringModulatedSignal);
-                channelData[sample] = mixedSignal;
+                if (!previouslyAboveThresh) {
+                    previouslyAboveThresh = true;
+                    smoothedThreshold.setTargetValue(mix);
+                }
+            } else {
+                if (previouslyAboveThresh) {
+                    previouslyAboveThresh = false;
+                    smoothedThreshold.setTargetValue(0.0f);
+                } else {
+                    if (smoothedMix == 0.0f)
+                        continue;
+                }
             }
+            smoothedMix = smoothedThreshold.getNextValue();
+            float scSample = sideChainChannelData[sample];
+            float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
+            float mixedSignal = mixSamples(inputSample, ringModulatedSignal);
+            channelData[sample] = mixedSignal;
         }
     }
-    // TODO: Fix Gain Range. 0.5 is effectively reducing the volume, once a sidechain signal comes in!
-    buffer.applyGain(gain);
+    buffer.applyGain(juce::Decibels::decibelsToGain(gain));
 }
 
 bool AmpModAudioProcessor::isInThreshold(float sample) const
@@ -175,7 +189,7 @@ bool AmpModAudioProcessor::isInThreshold(float sample) const
 
 float AmpModAudioProcessor::mixSamples(float originalSample, float processedSample) const
 {
-    return (1.0f - mix) * originalSample + mix * processedSample;
+    return (1.0f - smoothedMix) * originalSample + smoothedMix * processedSample;
 }
 
 
@@ -210,4 +224,8 @@ void AmpModAudioProcessor::setStateInformation (const void* data, int sizeInByte
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new AmpModAudioProcessor();
+}
+
+void AmpModAudioProcessor::refreshSmoothing() {
+    smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
 }

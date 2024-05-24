@@ -51,16 +51,36 @@ AmpModAudioProcessorEditor::AmpModAudioProcessorEditor (AmpModAudioProcessor& p,
     addAndMakeVisible(gain);
     addAndMakeVisible(gainLabel);
 
+
+    smoothing.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    smoothing.setLookAndFeel(&ringBearerLookAndFeel);
+    smoothing.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
+    smoothing.addListener(this);
+    smoothingAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Smoothing", smoothing));
+    smoothingLabel.setText(juce::String("Smoothing"), juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(smoothing);
+    addAndMakeVisible(smoothingLabel);
+
+    gain.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    gain.setLookAndFeel(&ringBearerLookAndFeel);
+    gain.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
+    gainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Gain", gain));
+    gainLabel.setText(juce::String("Volume"), juce::NotificationType::dontSendNotification);
+    addAndMakeVisible(gain);
+    addAndMakeVisible(gainLabel);
+
     audioProcessor.oscilloscope.setColours(juce::Colours::whitesmoke, juce::Colours::black);
     audioProcessor.oscilloscope.setBufferSize(400);
     audioProcessor.oscilloscope.setSamplesPerBlock(64);
+    audioProcessor.oscilloscope.threHi=static_cast<float>(threHi.getValue());
+    audioProcessor.oscilloscope.threLo=static_cast<float>(threLo.getValue());
+
     addAndMakeVisible(audioProcessor.oscilloscope);
 }
 
 AmpModAudioProcessorEditor::~AmpModAudioProcessorEditor()
 {
-    threLo.removeListener(this);
-    threHi.removeListener(this);
+
 }
 
 //==============================================================================
@@ -88,7 +108,7 @@ void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawRoundedRectangle(static_cast<float>(getX() + 10), static_cast<float>(getY() + 10), getWidth()*0.96, getHeight()*0.93, 2.0f, 1.5f);
 
     g.setColour(juce::Colour::fromRGB(56,75,91));
-    g.drawLine(355, static_cast<float>(getHeight() * 0.70), 355, static_cast<float>(getHeight() * 0.87), 1);
+    g.drawLine(340, static_cast<float>(getHeight() * 0.70), 340, static_cast<float>(getHeight() * 0.87), 1);
 
     g.drawHorizontalLine(getHeight() * 0.67, 20, getWidth() * 0.95f);
 
@@ -96,6 +116,8 @@ void AmpModAudioProcessorEditor::paint (juce::Graphics& g)
 
 void AmpModAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
 {
+    if (sliderThatChanged == &smoothing)
+        audioProcessor.refreshSmoothing();
     if (sliderThatChanged == &threHi)
     {
         if (threHi.getValue() < threLo.getValue())
@@ -124,11 +146,15 @@ void AmpModAudioProcessorEditor::resized()
     threHi.setBounds(160, static_cast<int>(height * 0.7), 40, 40);
     threHiLabel.setBounds(140, static_cast<int>(height * 0.8), 80, 60);
 
-    mix.setBounds(270, static_cast<int>(height * 0.7), 40, 40);
-    mixLabel.setBounds(275, static_cast<int>(height * 0.8), 60, 60);
+    smoothing.setBounds(265, static_cast<int>(height * 0.7), 40, 40);
+    smoothingLabel.setBounds(255, static_cast<int>(height * 0.8), 60, 60);
 
-    gain.setBounds(410, static_cast<int>(height * 0.7), 40, 40);
-    gainLabel.setBounds(402, static_cast<int>(height * 0.8), 60, 60);
+    mix.setBounds(360, static_cast<int>(height * 0.7), 40, 40);
+    mixLabel.setBounds(365, static_cast<int>(height * 0.8), 60, 60);
+
+    gain.setBounds(420, static_cast<int>(height * 0.7), 40, 40);
+    gainLabel.setBounds(410, static_cast<int>(height * 0.8), 60, 60);
     audioProcessor.oscilloscope.setBounds(static_cast<int>(width * 0.05), 20, static_cast<int>(width * 0.90),
                                           static_cast<int>(height * 0.55));
+
 }
