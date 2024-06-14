@@ -41,7 +41,11 @@ public:
         juce::SmoothedValue<float> smoothedThreshold;
     };
 
-    std::array<state, 1> states;
+    state left_channel_state;
+    state right_channel_state;
+    std::vector<state> states;
+
+
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;

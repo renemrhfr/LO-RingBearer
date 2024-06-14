@@ -22,10 +22,11 @@ project(LO-RingBearer VERSION 0.0.1)
 # include that subdirectory as part of the build.
 
 # find_package(JUCE CONFIG REQUIRED)        # If you've installed JUCE to your system
-# or
-add_subdirectory("../../JUCE" "JUCE-bin") # -- for MAC
-#add_subdirectory("..\\..\\..\\..\\Coding\\JUCE" "JUCE-bin") # -- for Windows
-
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    add_subdirectory("..\\..\\..\\..\\Coding\\JUCE" "JUCE-bin") # -- for Windows
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    add_subdirectory("../../JUCE" "JUCE-bin") # -- for MAC
+endif ()
 
 # If you are building a VST2 or AAX plugin, CMake needs to be told where to find these SDKs on your
 # system. This setup should be done before calling `juce_add_plugin`.
@@ -43,15 +44,15 @@ juce_add_plugin(LO-RingBearer
         # VERSION ...                               # Set this if the plugin version is different to the project version
         # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
         # ICON_SMALL ...
-        # COMPANY_NAME ...                          # Specify the name of the plugin's author
-        # IS_SYNTH TRUE/FALSE                       # Is this a synth or an effect?
-        # NEEDS_MIDI_INPUT TRUE/FALSE               # Does the plugin need midi input?
-        # NEEDS_MIDI_OUTPUT TRUE/FALSE              # Does the plugin need midi output?
-        # IS_MIDI_EFFECT TRUE/FALSE                 # Is this plugin a MIDI effect?
-        # EDITOR_WANTS_KEYBOARD_FOCUS TRUE/FALSE    # Does the editor need keyboard focus?
-        # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE        # Should the plugin be installed to a default location after building?
-        PLUGIN_MANUFACTURER_CODE Juce               # A four-character manufacturer id with at least one upper-case character
-        PLUGIN_CODE Dem0                            # A unique four-character plugin id with exactly one upper-case character
+        COMPANY_NAME renemrhfr                          # Specify the name of the plugin's author
+        IS_SYNTH FALSE                       # Is this a synth or an effect?
+        NEEDS_MIDI_INPUT FALSE               # Does the plugin need midi input?
+        NEEDS_MIDI_OUTPUT FALSE              # Does the plugin need midi output?
+        IS_MIDI_EFFECT FALSE                 # Is this plugin a MIDI effect?
+        EDITOR_WANTS_KEYBOARD_FOCUS FALSE    # Does the editor need keyboard focus?
+        COPY_PLUGIN_AFTER_BUILD TRUE        # Should the plugin be installed to a default location after building?
+        PLUGIN_MANUFACTURER_CODE Locu               # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_CODE Lrbr                            # A unique four-character plugin id with exactly one upper-case character
         # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
         FORMATS VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
         PRODUCT_NAME "LO-RingBearer")        # The name of the final executable, which can differ from the target name
@@ -62,15 +63,15 @@ juce_add_plugin(LO-RingBearer
 # include all your JUCE module headers; if you're happy to include module headers directly, you
 # probably don't need to call this.
 
-# juce_generate_juce_header(LO-RingBearer)
+juce_generate_juce_header(LO-RingBearer)
 
-### This copies the Build on Mac
-set(VST3_SOURCE_DIR "/Users/renemaierhofer/Dev/CLionProjects/Lo-Ringbearer/cmake-build-debug/LO-RingBearer_artefacts/Debug/VST3")
-set(VST3_DESTINATION_DIR "/Users/renemaierhofer/Library/Audio/Plug-Ins/VST3")
-
-### This copies the Build on Windows
-#set(VST3_SOURCE_DIR "C:\\Users\\Rene\\CLionProjects\\LO-RingBearer\\cmake-build-debug\\LO-RingBearer_artefacts\\Debug\\VST3")
-#set(VST3_DESTINATION_DIR "C:\\Program Files\\Common Files\\VST3")
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(VST3_SOURCE_DIR "C:\\Users\\Rene\\CLionProjects\\LO-RingBearer\\cmake-build-release\\LO-RingBearer_artefacts\\Release\\VST3")
+    set(VST3_DESTINATION_DIR "C:\\Program Files\\Common Files\\VST3")
+elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    set(VST3_SOURCE_DIR "/Users/renemaierhofer/Dev/CLionProjects/Lo-Ringbearer/cmake-build-debug/LO-RingBearer_artefacts/Debug/VST3")
+    set(VST3_DESTINATION_DIR "/Users/renemaierhofer/Library/Audio/Plug-Ins/VST3")
+endif ()
 
 add_custom_command(TARGET LO-RingBearer_VST3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -93,7 +94,7 @@ target_sources(LO-RingBearer
         BinaryData.h
         BinaryData.cpp
         RingBearerLookAndFeel.cpp
-        )
+)
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use

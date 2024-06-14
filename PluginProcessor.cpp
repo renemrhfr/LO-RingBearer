@@ -23,11 +23,10 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
            })
 #endif
 {
-    refreshSmoothing();
-    state left_channel_state;
-    state right_channel_state;
+    states.resize(2);
     states[0] = left_channel_state;
     states[1] = right_channel_state;
+    refreshSmoothing();
 }
 
 RingBearerAudioProcessor::~RingBearerAudioProcessor() = default;
@@ -123,6 +122,8 @@ bool RingBearerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    if (states.size() != 2)
+        return;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -146,6 +147,8 @@ void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     for (int channel = 0; channel < totalChannelsToProcess; ++channel) {
         auto* channelData = buffer.getWritePointer(channel);
         const auto* sideChainChannelData = sidechainBuffer.getWritePointer(channel);
+        if (sideChainChannelData == nullptr)
+            return;
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
             auto channel_id = static_cast<unsigned long>(channel);
             float inputSample = channelData[sample];
@@ -216,6 +219,8 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 void RingBearerAudioProcessor::refreshSmoothing() {
+    if (states.size() != 2)
+        return;
     states[0].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
     states[1].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
     states[0].previouslyAboveThresh = !states[0].previouslyAboveThresh;
