@@ -33,19 +33,7 @@ public:
 
     Oscilloscope oscilloscope;
     
-    juce::AudioProcessorValueTreeState parameters; //
-
-    struct state {
-        float smoothedMix;
-        bool previouslyAboveThresh;
-        juce::SmoothedValue<float> smoothedThreshold;
-    };
-
-    state left_channel_state;
-    state right_channel_state;
-    std::vector<state> states;
-
-
+    juce::AudioProcessorValueTreeState parameters;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -57,7 +45,6 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     bool isInThreshold(float sample) const;
-    void refreshSmoothing();
     float mixSamples(float originalSample, float processedSample, unsigned long channel) const;
 
     //==============================================================================

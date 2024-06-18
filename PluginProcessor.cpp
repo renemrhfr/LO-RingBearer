@@ -18,15 +18,10 @@ parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
     std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
     std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
     std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Smoothing", "Smoothing", juce::NormalisableRange<float>(0.0f, 10.0f), 0.0f),
-    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", juce::NormalisableRange<float>(-5.0f, 5.0f), 0.0f)
+    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", juce::NormalisableRange<float>(-10.0f, 5.0f), 0.0f)
            })
 #endif
 {
-    states.resize(2);
-    states[0] = left_channel_state;
-    states[1] = right_channel_state;
-    refreshSmoothing();
 }
 
 RingBearerAudioProcessor::~RingBearerAudioProcessor() = default;
@@ -122,8 +117,6 @@ bool RingBearerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    if (states.size() != 2)
-        return;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -153,27 +146,15 @@ void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
             auto channel_id = static_cast<unsigned long>(channel);
             float inputSample = channelData[sample];
             if (isInThreshold(inputSample)) {
-                if (!states[channel_id].previouslyAboveThresh) {
-                    states[channel_id].previouslyAboveThresh = true;
-                    states[channel_id].smoothedThreshold.setTargetValue(mix);
-                }
+                float scSample = sideChainChannelData[sample];
+                float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
+                float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel_id);
+                channelData[sample] = mixedSignal;
             } else {
-                if (states[channel_id].previouslyAboveThresh) {
-                    states[channel_id].previouslyAboveThresh = false;
-                    states[channel_id].smoothedThreshold.setTargetValue(0.0f);
-                } else {
-                    if (states[channel_id].smoothedMix == 0.0f)
-                        continue;
-                }
+                channelData[sample] = channelData[sample] * juce::Decibels::decibelsToGain(gain);
             }
-            states[channel_id].smoothedMix = states[channel_id].smoothedThreshold.getNextValue();
-            float scSample = sideChainChannelData[sample];
-            float ringModulatedSignal = juce::jlimit(-1.0f, 1.0f, inputSample * scSample);
-            float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel_id);
-            channelData[sample] = mixedSignal;
         }
     }
-    buffer.applyGain(juce::Decibels::decibelsToGain(gain));
 }
 
 bool RingBearerAudioProcessor::isInThreshold(float sample) const
@@ -183,7 +164,7 @@ bool RingBearerAudioProcessor::isInThreshold(float sample) const
 
 float RingBearerAudioProcessor::mixSamples(float originalSample, float processedSample, unsigned long channel) const
 {
-    return (1.0f - states[channel].smoothedMix) * originalSample + states[channel].smoothedMix * processedSample;
+    return (1.0f - mix) * originalSample + mix * processedSample;
 }
 
 
@@ -216,13 +197,4 @@ void RingBearerAudioProcessor::setStateInformation (const void* data, int sizeIn
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new RingBearerAudioProcessor();
-}
-
-void RingBearerAudioProcessor::refreshSmoothing() {
-    if (states.size() != 2)
-        return;
-    states[0].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
-    states[1].smoothedThreshold.reset(getSampleRate(), parameters.getParameter("Smoothing")->getValue() * 0.001);
-    states[0].previouslyAboveThresh = !states[0].previouslyAboveThresh;
-    states[1].previouslyAboveThresh = !states[1].previouslyAboveThresh;
 }

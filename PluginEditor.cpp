@@ -48,25 +48,7 @@ RingBearerAudioProcessorEditor::RingBearerAudioProcessorEditor (RingBearerAudioP
     gain.setLookAndFeel(&ringBearerLookAndFeel);
     gain.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
     gainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Gain", gain));
-    gainLabel.setText(juce::String("Volume"), juce::NotificationType::dontSendNotification);
-    addAndMakeVisible(gain);
-    addAndMakeVisible(gainLabel);
-
-
-    smoothing.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    smoothing.setLookAndFeel(&ringBearerLookAndFeel);
-    smoothing.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
-    smoothing.addListener(this);
-    smoothingAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Smoothing", smoothing));
-    smoothingLabel.setText(juce::String("Smoothing"), juce::NotificationType::dontSendNotification);
-    addAndMakeVisible(smoothing);
-    addAndMakeVisible(smoothingLabel);
-
-    gain.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    gain.setLookAndFeel(&ringBearerLookAndFeel);
-    gain.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
-    gainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Gain", gain));
-    gainLabel.setText(juce::String("Volume"), juce::NotificationType::dontSendNotification);
+    gainLabel.setText(juce::String("Dry Vol."), juce::NotificationType::dontSendNotification);
     addAndMakeVisible(gain);
     addAndMakeVisible(gainLabel);
 
@@ -112,7 +94,6 @@ void RingBearerAudioProcessorEditor::paint (juce::Graphics& g)
 
 void RingBearerAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
 {
-    audioProcessor.refreshSmoothing();
     if (sliderThatChanged == &threHi)
     {
         if (threHi.getValue() < threLo.getValue())
@@ -140,9 +121,6 @@ void RingBearerAudioProcessorEditor::resized()
 
     threHi.setBounds(160, static_cast<int>(height * 0.7), 40, 40);
     threHiLabel.setBounds(140, static_cast<int>(height * 0.8), 80, 60);
-
-    smoothing.setBounds(265, static_cast<int>(height * 0.7), 40, 40);
-    smoothingLabel.setBounds(255, static_cast<int>(height * 0.8), 60, 60);
 
     mix.setBounds(360, static_cast<int>(height * 0.7), 40, 40);
     mixLabel.setBounds(365, static_cast<int>(height * 0.8), 60, 60);
