@@ -22,7 +22,7 @@ void Oscilloscope::pushBufferSnapshot(const juce::AudioBuffer<float>& bufferToPu
 
 void Oscilloscope::paint(juce::Graphics& g) {
     juce::Path roundedRectangle;
-    roundedRectangle.addRoundedRectangle(getLocalBounds().toFloat(), 10.0f);
+    roundedRectangle.addRoundedRectangle(getLocalBounds().toFloat(), 0.0f);
     g.saveState();
     g.reduceClipRegion(roundedRectangle);
     g.drawImage(backgroundImage, getLocalBounds().toFloat());

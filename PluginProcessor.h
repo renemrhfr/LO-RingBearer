@@ -28,8 +28,8 @@ public:
     
     float threLo{};
     float threHi{};
-    float mix{};
-    float gain{};
+    float intensity{};
+    float dryGain{};
 
     Oscilloscope oscilloscope;
     

@@ -15,10 +15,10 @@ RingBearerAudioProcessor::RingBearerAudioProcessor()
                   ),
 parameters(*this, nullptr, juce::Identifier ("Lo-RingBearer"),
            {
-    std::make_unique<juce::AudioParameterFloat>("ThresholdLow", "ThresholdLow", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
-    std::make_unique<juce::AudioParameterFloat>("ThresholdHigh", "ThresholdHigh", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Mix", "Mix", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
-    std::make_unique<juce::AudioParameterFloat>("Gain", "Gain", juce::NormalisableRange<float>(-10.0f, 5.0f), 0.0f)
+    std::make_unique<juce::AudioParameterFloat>("Low", "Low", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 0.0f),
+    std::make_unique<juce::AudioParameterFloat>("High", "High", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1.0f), 1.0f),
+    std::make_unique<juce::AudioParameterFloat>("Intensity", "Intensity", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f, 1), 1.0f),
+    std::make_unique<juce::AudioParameterFloat>("Dry Gain", "Dry Gain", juce::NormalisableRange<float>(-10.0f, 10.0f), 0.0f)
            })
 #endif
 {
@@ -122,16 +122,16 @@ void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-    threHi = parameters.getParameter("ThresholdHigh")->getValue();
-    threLo = parameters.getParameter("ThresholdLow")->getValue();
-    mix = parameters.getParameter("Mix")->getValue();
-    gain = parameters.getRawParameterValue("Gain")->load();
+    threHi = parameters.getParameter("High")->getValue();
+    threLo = parameters.getParameter("Low")->getValue();
+    intensity = parameters.getParameter("Intensity")->getValue();
+    dryGain = parameters.getRawParameterValue("Dry Gain")->load();
     // Display a snapshot of the buffer before applying the effect
     oscilloscope.pushBufferSnapshot(buffer);
     juce::AudioBuffer<float> sidechainBuffer = getBusBuffer(buffer, true, 1);
     // Validate Sidechain buffer. If it's empty, or we don't have enough samples yet: do nothing.
     if (!sidechainBuffer.getNumChannels() || buffer.getNumSamples() > sidechainBuffer.getNumSamples()) {
-        buffer.applyGain(juce::Decibels::decibelsToGain(gain));
+        buffer.applyGain(juce::Decibels::decibelsToGain(dryGain));
         return;
     }
     int totalChannelsToProcess = juce::jmin(totalNumInputChannels, sidechainBuffer.getNumChannels());
@@ -151,7 +151,7 @@ void RingBearerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
                 float mixedSignal = mixSamples(inputSample, ringModulatedSignal, channel_id);
                 channelData[sample] = mixedSignal;
             } else {
-                channelData[sample] = channelData[sample] * juce::Decibels::decibelsToGain(gain);
+                channelData[sample] = channelData[sample] * juce::Decibels::decibelsToGain(dryGain);
             }
         }
     }
@@ -164,7 +164,7 @@ bool RingBearerAudioProcessor::isInThreshold(float sample) const
 
 float RingBearerAudioProcessor::mixSamples(float originalSample, float processedSample, unsigned long channel) const
 {
-    return (1.0f - mix) * originalSample + mix * processedSample;
+    return (1.0f - intensity) * originalSample + intensity * processedSample;
 }
 
 
