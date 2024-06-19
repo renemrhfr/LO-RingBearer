@@ -51,7 +51,7 @@ RingBearerAudioProcessorEditor::RingBearerAudioProcessorEditor (RingBearerAudioP
     gain.setLookAndFeel(&ringBearerLookAndFeel);
     gain.setTextBoxStyle(juce::Slider::NoTextBox, true,0,0);
     gainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(vts, "Dry Gain", gain));
-    gainLabel.setText(juce::String("Dry Signal"), juce::NotificationType::dontSendNotification);
+    gainLabel.setText(juce::String("Dry Level"), juce::NotificationType::dontSendNotification);
     gainLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     addAndMakeVisible(gain);
     addAndMakeVisible(gainLabel);
@@ -78,6 +78,7 @@ void RingBearerAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(juce::Colour::fromRGB(56,75,91));
 
     g.drawLine(130, static_cast<float>(getHeight() * 0.80), 130, static_cast<float>(getHeight() * 0.95), 1);
+    g.drawLine(410, static_cast<float>(getHeight() * 0.80), 410, static_cast<float>(getHeight() * 0.95), 1);
 }
 
 void RingBearerAudioProcessorEditor::sliderValueChanged(juce::Slider* sliderThatChanged)
@@ -106,11 +107,11 @@ void RingBearerAudioProcessorEditor::resized()
     threLoLabel.setBounds(160, static_cast<int>(height * 0.72), 100, 40);
     threLo.setBounds(160, static_cast<int>(height * 0.84), 35, 35 );
 
-    threHiLabel.setBounds(217, static_cast<int>(height * 0.72), 100, 40);
-    threHi.setBounds(218, static_cast<int>(height * 0.84), 35, 35);
+    threHiLabel.setBounds(237, static_cast<int>(height * 0.72), 100, 40);
+    threHi.setBounds(238, static_cast<int>(height * 0.84), 35, 35);
 
-    mixLabel.setBounds(269, static_cast<int>(height * 0.72), 100, 40);
-    mix.setBounds(278, static_cast<int>(height * 0.84), 40, 35);
+    mixLabel.setBounds(309, static_cast<int>(height * 0.72), 100, 40);
+    mix.setBounds(318, static_cast<int>(height * 0.84), 40, 35);
 
     gainLabel.setBounds(425, static_cast<int>(height * 0.72), 100, 40);
     gain.setBounds(440, static_cast<int>(height * 0.84), 40, 35);
