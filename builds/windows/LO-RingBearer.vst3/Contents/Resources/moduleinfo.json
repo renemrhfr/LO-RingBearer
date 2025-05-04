@@ -1,0 +1,58 @@
+{
+  "Name": "LO-RingBearer",
+  "Version": "0.0.1",
+  "Factory Info": {
+    "Vendor": "renemrhfr",
+    "URL": "",
+    "E-Mail": "",
+    "Flags": {
+      "Unicode": true,
+      "Classes Discardable": false,
+      "Component Non Discardable": false,
+    },
+  },
+  "Classes": [
+    {
+      "CID": "ABCDEF019182FAEB4C6F63754C726272",
+      "Category": "Audio Module Class",
+      "Name": "LO-RingBearer",
+      "Vendor": "renemrhfr",
+      "Version": "0.0.1",
+      "SDKVersion": "VST 3.7.12",
+      "Sub Categories": [
+        "Fx",
+      ],
+      "Class Flags": 0,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+    {
+      "CID": "ABCDEF011234ABCD4C6F63754C726272",
+      "Category": "Component Controller Class",
+      "Name": "LO-RingBearer",
+      "Vendor": "renemrhfr",
+      "Version": "0.0.1",
+      "SDKVersion": "VST 3.7.12",
+      "Sub Categories": [
+        "Fx",
+      ],
+      "Class Flags": 0,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+    {
+      "CID": "ABCDEF01C0DEF00D4C6F63754C726272",
+      "Category": "Plugin Compatibility Class",
+      "Name": "LO-RingBearer",
+      "Vendor": "renemrhfr",
+      "Version": "0.0.1",
+      "SDKVersion": "VST 3.7.12",
+      "Class Flags": 0,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+  ],
+}
